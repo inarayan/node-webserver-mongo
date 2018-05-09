@@ -1,3 +1,4 @@
+var ObjectID = require('mongodb');
 var express = require('express');
 var bodyparser = require('body-parser');
 var {mongoose} = require('./db/db');
@@ -36,6 +37,7 @@ app.post('/todos',(req, res)=>{
     })
 });
 
+//searches for all the todos
 app.get('/todos',(req, res)=>{
     Todo.find({}).then((docs)=>{
         res.send({docs});
@@ -43,6 +45,25 @@ app.get('/todos',(req, res)=>{
         res.status(404).send(e);
     })
 });
+
+//Search a todo by Id
+app.get('/todos/:id', (req, res) => {
+    var searchid = req.params.id;
+
+    Todo.findById(searchid).then((todo) => {
+        console.log(todo);
+        if(todo){
+           res.send({todo});
+
+       }else{
+            res.status(404).send("Todo not found!!");
+       }
+
+    }).catch((e) => {
+        res.status(400).send(e);
+    })
+
+})
 
 app.listen(3000,() => console.log('Example app listening on port 3000!'));
 
