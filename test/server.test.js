@@ -17,7 +17,7 @@ describe('POST Test all the Post routes', ()=>{
     it('creates the todo',(done)=>{
 
         request(app)
-            .post('/CreateTodo')
+            .post('/todos')
             .send({task:'first Task',assigned_to:'no one'})
             .expect(201)
             .expect(function(res){
@@ -37,7 +37,7 @@ describe('POST Test all the Post routes', ()=>{
 
     it('cannot create todo with invalid data that fails the schema validation',(done)=>{
         request(app)
-        .post('/CreateTodo')
+        .post('/todos')
         .send({task:'Invalid Task'})
         .expect(400)
         .end((err,res)=>{
@@ -53,6 +53,10 @@ describe('POST Test all the Post routes', ()=>{
         })
     })
 
+    it('gets all the todos',(done)=>{
+        request(app)
+        .get()
+    })
 
 })
 
