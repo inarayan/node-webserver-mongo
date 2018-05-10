@@ -27,11 +27,11 @@ app.post('/createUser', function(req, res){
 
 app.post('/todos',(req, res)=>{
     var TodoCreate = new Todo(req.body);
+
     TodoCreate.save().then((todo)=>{
         console.log("Todo was added to the list");
         res.status(201).send(todo);
     }).catch((e)=>{
-        console.log(e);
         res.status(400).send(e);
         //console.log("There was an error while adding a todo task");
     })
@@ -51,7 +51,6 @@ app.get('/todos/:id', (req, res) => {
     var searchid = req.params.id;
 
     Todo.findById(searchid).then((todo) => {
-        console.log(todo);
         if(todo){
            res.send({todo});
 

@@ -5,58 +5,88 @@ const express = require('express');
 const {app} = require('./../server');
 
 const{Todo} = require('./../model/TodoSchema');
+var {ObjectID} = require('mongodb');
+
+//Todos to insert
+var Todos = [{
+    "_id": new ObjectID(),
+    "task":"Task 1",
+    "assigned_to":"person1"
+},{
+    "_id": new ObjectID(),
+    "task":"Task 2",
+    "assigned_to":"person2"
+}];
 
   beforeEach(function(done) {
     // runs before each test in this block
-    Todo.remove({}).then(()=> done())
+    Todo.remove({}).then(()=> {
+        Todo.insertMany(Todos)
+    }).then(()=> done());
+    //Todo.remove({}).then(()=> done());
   });
 
 describe('POST Test all the Post routes', ()=>{
 
-
-    it('creates the todo',(done)=>{
-
+    it('creates the todo task', (done)=>{
         request(app)
             .post('/todos')
-            .send({task:'first Task',assigned_to:'no one'})
+            .send({"task":"Service your vehicle 2", "assigned_to":"Indra2"})
             .expect(201)
             .expect(function(res){
         }).end((err, res) => { // 4
-        if (err) {
-          return done(err)
+            if (err) {
+            return done(err)
         }
-        Todo.find({'task':'first Task'}).then((Todos)=>{
-            expect(Todos.length).toBe(1);
+
+        Todo.find({'task':"Service your vehicle 2"}).then((TodoDoc)=>{
+            expect(TodoDoc.length).toBe(1);
             done();
             }).catch((e)=>{
                 done(e);
             })
 
         });
+
     });
 
-    it('cannot create todo with invalid data that fails the schema validation',(done)=>{
+   it('cannot create todo with invalid data that fails the schema validation',(done)=>{
         request(app)
         .post('/todos')
         .send({task:'Invalid Task'})
         .expect(400)
         .end((err,res)=>{
             if(err){
-                return done(err)
+                return done(err);
             }
             Todo.find({}).then((todos)=>{
-                expect(todos.length).toBe(0);
+                expect(todos.length).toBe(2);
                 done();
             }).catch((e)=>{
                 done(e);
             })
         })
-    })
+    });
 
-    it('gets all the todos',(done)=>{
+});
+
+describe('GET /todos/:id', ()=>{
+    it('gets a todo using id', (done)=>{
+        var id = Todos[0]._id.toHexString();
         request(app)
-        .get()
-    })
+        .get(`/todos/${id}`)
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.todo.task).toBe('Task 1');
+        }).end(done)
+    });
 
+    it('gets 404 error in case id is not found',(done)=>{
+        var id = new ObjectID().toHexString();
+        request(app)
+        .get(`/todos/${id}`)
+        .expect(404, done)
+    })
 })
+
 
