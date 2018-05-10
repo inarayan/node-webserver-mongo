@@ -7,6 +7,10 @@ var {Todo} = require('./model/TodoSchema');
 
 var app = express();
 
+//Create a port variable for heroku
+const port = process.env.PORT || 3000;
+
+
 app.use(bodyparser.json());
 
 app.get('/',function(req, res){
@@ -16,7 +20,7 @@ app.get('/',function(req, res){
 app.post('/createUser', function(req, res){
     var userCreate = new User(req.body);
     userCreate.save(userCreate).then((doc)=>{
-        console.log("The document was saved");
+        console.log("The document was saved to date");
         res.status(201).send(doc);
     }).catch(e=>{
         res.status(400).send(e);
@@ -64,7 +68,7 @@ app.get('/todos/:id', (req, res) => {
 
 })
 
-app.listen(3000,() => console.log('Example app listening on port 3000!'));
+app.listen(port,() => console.log('Example app listening on port'+`${port}`));
 
 module.exports={
     app
