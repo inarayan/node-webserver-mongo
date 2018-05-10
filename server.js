@@ -4,6 +4,7 @@ var bodyparser = require('body-parser');
 var {mongoose} = require('./db/db');
 var {User} = require('./model/UserSchema');
 var {Todo} = require('./model/TodoSchema');
+var { ObjectID } = require('mongodb');
 
 var app = express();
 
@@ -54,6 +55,9 @@ app.get('/todos',(req, res)=>{
 app.get('/todos/:id', (req, res) => {
     var searchid = req.params.id;
 
+    if (!ObjectID.isValid(searchid)){
+        return res.status(400).send("Not a valid ID");
+    }
     Todo.findById(searchid).then((todo) => {
         if(todo){
            res.send({todo});
