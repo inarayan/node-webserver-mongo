@@ -11,11 +11,16 @@ var {ObjectID} = require('mongodb');
 var Todos = [{
     "_id": new ObjectID(),
     "task":"Task 1",
-    "assigned_to":"person1"
+    "assigned_to":"person1",
+    "done":false,
+    "dueDate": new Date().getTime()
 },{
     "_id": new ObjectID(),
     "task":"Task 2",
-    "assigned_to":"person2"
+    "assigned_to":"person2",
+    "done":"false",
+    "dueDate":null
+
 }];
 
   beforeEach(function(done) {
@@ -132,6 +137,33 @@ describe('DELETE /todos/:id', () => {
         .expect(400, done)
     })
 
+});
+
+describe('PATCH /todos/:id', ()=>{
+    it('should update the todo', (done) => {
+        var id = Todos[0]._id.toHexString();
+        request(app)
+        .patch(`/todos/${id}`)
+        .send({"task":"This the first new task", "done": true})
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.todo.task).toBe("This the first new task");
+            expect(res.body.todo.done).toBeTruthy();
+        }).end(done)
+    });
+
+    it('should clear the dueDate when the todo is not completed', (done) => {
+        var id = Todos[1]._id.toHexString();
+        request(app)
+        .patch(`/todos/${id}`)
+        .send({"task":"This the second new task", "done": false})
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.todo.task).toBe("This the second new task");
+            expect(res.body.todo.done).toBeFalsy();
+            expect(res.body.todo.dueDate).toBeFalsy();
+        }).end(done)
+    })
 })
 
 

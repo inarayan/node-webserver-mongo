@@ -1,10 +1,10 @@
-var ObjectID = require('mongodb');
-var express = require('express');
-var bodyparser = require('body-parser');
-var {mongoose} = require('./db/db');
-var { User } = require('./model/UserSchema');
-var { Todo } = require('./model/TodoSchema');
 var { ObjectID } = require('mongodb');
+const express = require('express');
+const bodyparser = require('body-parser');
+const {mongoose} = require('./db/db');
+const { User } = require('./model/UserSchema');
+const { Todo } = require('./model/TodoSchema');
+const {_} = require('lodash');
 
 var app = express();
 
@@ -44,8 +44,8 @@ app.post('/todos',(req, res)=>{
 
 //searches for all the todos
 app.get('/todos',(req, res)=>{
-    Todo.find({}).then((docs)=>{
-        res.send({docs});
+    Todo.find({}).then((todos)=>{
+        res.send({todos});
     }).catch((e)=>{
         res.status(404).send(e);
     })
@@ -91,6 +91,36 @@ app.delete('/todos/:id', (req, res)=>{
         res.status(400).send(e);
     })
 })
+
+//patch a todo (update a text and assigned To  and done)
+app.patch('/todos/:id', (req, res) => {
+
+    var id = req.params.id;
+    var body = _.pick(req.body,['task','done']);
+
+    if (_.isBoolean(body.done) && body.done === true){
+        body.dueDate= new Date().getTime();
+    }else {
+        body.done=false;
+        body.dueDate = null;
+
+    }
+
+    Todo.findByIdAndUpdate(id, {
+        $set:body
+    },{
+        new: true
+    }).then((todo)=>{
+        if(todo){
+            res.send({todo});
+        }else{
+            res.status(404).send("Todo not Found");
+        }
+    }).catch((e)=>{
+        res.status(400).send(e);
+    })
+
+});
 
 app.listen(port,() => console.log('Example app listening on port'+`${port}`));
 
