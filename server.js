@@ -76,15 +76,14 @@ app.get('/todos/:id', (req, res) => {
 app.delete('/todos/:id', (req, res)=>{
     var idToBeDeleted = req.params.id;
 
-    console.log(idToBeDeleted);
 
     if(!ObjectID.isValid(idToBeDeleted)) {
         return res.status(400).send("Id is not Valid");
     }
 
-    Todo.findOneAndRemove({"_id": idToBeDeleted}).then((doc)=>{
-        if (doc){
-            res.send("Todo item has been deleted Successfully");
+    Todo.findOneAndRemove({"_id": idToBeDeleted}).then((todo)=>{
+        if (todo){
+            res.send({todo});
         }else{
             res.status(404).send("Todo does not exist")
         }
