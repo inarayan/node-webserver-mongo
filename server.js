@@ -2,8 +2,8 @@ var ObjectID = require('mongodb');
 var express = require('express');
 var bodyparser = require('body-parser');
 var {mongoose} = require('./db/db');
-var {User} = require('./model/UserSchema');
-var {Todo} = require('./model/TodoSchema');
+var { User } = require('./model/UserSchema');
+var { Todo } = require('./model/TodoSchema');
 var { ObjectID } = require('mongodb');
 
 var app = express();
@@ -70,6 +70,27 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send(e);
     })
 
+});
+
+//delete a todo by Id
+app.delete('/todos/:id', (req, res)=>{
+    var idToBeDeleted = req.params.id;
+
+    console.log(idToBeDeleted);
+
+    if(!ObjectID.isValid(idToBeDeleted)) {
+        return res.status(400).send("Id is not Valid");
+    }
+
+    Todo.findOneAndRemove({"_id": idToBeDeleted}).then((doc)=>{
+        if (doc){
+            res.send("Todo item has been deleted Successfully");
+        }else{
+            res.status(404).send("Todo does not exist")
+        }
+    }).catch((e)=> {
+        res.status(400).send(e);
+    })
 })
 
 app.listen(port,() => console.log('Example app listening on port'+`${port}`));
