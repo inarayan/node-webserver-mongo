@@ -5,6 +5,11 @@ const {mongoose} = require('./db/db');
 const { User } = require('./model/UserSchema');
 const { Todo } = require('./model/TodoSchema');
 const {_} = require('lodash');
+var {secret} = require('./config/config');
+var bcrypt = require ('bcryptjs');
+var jwt = require('jsonwebtoken');
+var { authenticate } = require ('./middleware/authenticate');
+
 
 var app = express();
 
@@ -18,17 +23,44 @@ app.get('/',function(req, res){
     res.send("Hello World");
 });
 
-app.post('/createUser', function(req, res){
-    var userCreate = new User(req.body);
-    userCreate.save(userCreate).then((doc)=>{
-        console.log("The document was saved to date");
-        res.status(201).send(doc);
-    }).catch(e=>{
+//Regstering a user using a post method
+app.post('/users', function(req, res){
+
+    var reqbody = _.pick(req.body,['email','password']);
+    //hash the password
+    var hashPassword = bcrypt.hashSync(reqbody.password, 10);
+    reqbody.password = hashPassword;
+
+    var user = new User(reqbody);
+
+    user.save(user).then((user)=>{
+
+        console.log("User got created successfully");
+        return user.generateAuthToken();
+
+    }).then((token)=>{
+        res.status(201).header('x-auth', token).send(_.pick(user,["email"]));
+    })
+    .catch((e) =>{
         res.status(400).send(e);
 
     })
 
 });
+
+//Create a authenticate middleware
+
+
+
+//Getting a user
+app.get('/user/me', authenticate, function(req, res){
+
+    res.status(200).send(_.pick(req.user,['_id','email']));
+
+
+
+
+})
 
 app.post('/todos',(req, res)=>{
     var TodoCreate = new Todo(req.body);
