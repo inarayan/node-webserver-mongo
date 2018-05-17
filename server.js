@@ -6,7 +6,8 @@ const { User } = require('./model/UserSchema');
 const { Todo } = require('./model/TodoSchema');
 const {_} = require('lodash');
 var {secret} = require('./config/config');
-var bcrypt = require ('bcryptjs');
+var bcrypt = require('bcryptjs');
+
 var jwt = require('jsonwebtoken');
 var { authenticate } = require ('./middleware/authenticate');
 
@@ -54,13 +55,21 @@ app.post('/users', function(req, res){
 
 //Getting a user
 app.get('/user/me', authenticate, function(req, res){
-
     res.status(200).send(_.pick(req.user,['_id','email']));
-
-
-
-
 })
+
+
+//Logging in the user
+app.post('/user/login', function(req, res){
+    User.findUserByCredentials(req.body).then((user)=>{
+        return user.generateAuthToken().then((token)=>{
+            res.header('x-auth', token).send(_.pick(user,['_id','email']));
+        });
+    }).catch((e)=>{
+        res.status(404).send("Unable to login. Please check userId/password");
+    });
+});
+
 
 app.post('/todos',(req, res)=>{
     var TodoCreate = new Todo(req.body);
