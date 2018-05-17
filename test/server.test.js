@@ -1,11 +1,30 @@
 const expect = require('expect');
 const request = require('supertest');
 const express = require('express');
-
+const jwt = require('jsonwebtoken');
 const {app} = require('./../server');
 
 const{Todo} = require('./../model/TodoSchema');
+const{ User } = require('./../model/UserSchema');
+var { secret } = require('./../config/config.js');
 var {ObjectID} = require('mongodb');
+
+var user1ObjId = new ObjectID();
+var user2ObjId = new ObjectID();
+
+var Users = [{
+    "_id":user1ObjId,
+    "email":"indra@example.com",
+    "password":"123456!",
+    "tokens":[{
+        "token": jwt.sign({_id:user1ObjId.toHexString(), access:'auth'},secret).toString(),
+        "access":"auth"
+    }]}
+    ,{
+    "_id":user2ObjId,
+    "email":"indra2@example.com",
+    "password":"123456!"
+}];
 
 //Todos to insert
 var Todos = [{
@@ -30,6 +49,16 @@ var Todos = [{
     }).then(()=> done());
     //Todo.remove({}).then(()=> done());
   });
+
+  //load the users in the database
+  beforeEach(function(done){
+    User.remove({}).then(()=>{
+        var user1 = new User(Users[0]).save();
+        var user2 = new User(Users[1]).save();
+
+        return Promise.all([user1, user2]).then(()=>{ done();})
+    })
+  })
 
 describe('POST Test all the Post routes', ()=>{
 
@@ -163,6 +192,69 @@ describe('PATCH /todos/:id', ()=>{
             expect(res.body.todo.done).toBeFalsy();
             expect(res.body.todo.dueDate).toBeFalsy();
         }).end(done)
+    })
+});
+
+
+describe('GET /user/me', ()=>{
+    it('should find the  valid user',(done)=>{
+        request(app)
+        .get('/user/me')
+        .set('x-auth',Users[0].tokens[0].token)
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.email).toBe(Users[0].email)
+        })
+        .end(done);
+    });
+
+    it('should return 401 due to invalid token', (done)=>{
+        request(app)
+        .get('/user/me')
+        .set('x-auth', Users[0].tokens[0].token+'0')
+        .expect(401)
+        .end(done);
+    })
+
+
+});
+
+describe('POST /users', ()=>{
+    it('should create a user', (done)=>{
+        var email = 'validuser@example.com'
+        var password = 'validpassword123!'
+
+        request(app)
+        .post('/users')
+        .send({"email":email, "password":password})
+        .expect(201)
+        .end((err)=>{
+            if(err){
+               done(err);
+            }
+        User.findOne({"email":email}).then((user)=>{
+            expect(user.tokens[0].token).toExist();
+            expect(user.email).toBe(email);
+            done();
+            });
+        });
+    });
+
+    it('should return 400 for duplicate email id', (done)=>{
+        var email="indra@example.com";
+        request(app)
+        .post('/users')
+        .send({"email":email, "password":"123456!"})
+        .expect(400)
+        .end(done);
+    })
+
+    it('should throw 400 for invalid request',(done)=>{
+        request(app)
+        .post('/users')
+        .send({"email":"", "password":""})
+        .expect(400)
+        .end(done);
     })
 })
 

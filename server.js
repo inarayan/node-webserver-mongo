@@ -28,8 +28,8 @@ app.post('/users', function(req, res){
 
     var reqbody = _.pick(req.body,['email','password']);
     //hash the password
-    var hashPassword = bcrypt.hashSync(reqbody.password, 10);
-    reqbody.password = hashPassword;
+    //var hashPassword = bcrypt.hashSync(reqbody.password, 10);
+    //reqbody.password = hashPassword;
 
     var user = new User(reqbody);
 
