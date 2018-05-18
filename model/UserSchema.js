@@ -55,6 +55,16 @@ UserSchema.methods.generateAuthToken = function(){
 };
 
 
+//This is a instance method to delete the token
+UserSchema.methods.removeToken = function(token){
+    var user = this;
+
+    return user.update({
+        $pull:{tokens: {token}}
+    });
+}
+
+
 //This is how we create Model Method
 UserSchema.statics.findByToken = function(token){
     var User = this;

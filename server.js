@@ -71,6 +71,15 @@ app.post('/user/login', function(req, res){
 });
 
 
+app.delete('/user/delete/token',(req, res)=>{
+    var user = new User();
+    user.removeToken(req.header['x-auth']).then(()=>{
+        res.send();
+    }).catch((e)=>{
+        res.status(400).send(e);
+    });
+});
+
 app.post('/todos',(req, res)=>{
     var TodoCreate = new Todo(req.body);
 
