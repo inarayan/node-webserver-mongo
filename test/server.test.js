@@ -300,6 +300,31 @@ describe('POST /users/login', ()=>{
         .expect(404)
         .end(done);
     })
-})
+});
+
+
+describe('DELETE /user/me/token', ()=>{
+    it('deletes the token when valid token is provided', (done)=>{
+        var token = Users[0].tokens[0].token;
+        var email = Users[0].email;
+
+
+        request(app)
+        .delete('/user/me/token')
+        .set('x-auth', Users[0].tokens[0].token)
+        .expect(200)
+        .end((err)=>{
+            if(err){
+                done(err);
+            }
+            User.findOne({"email":email}).then((user)=>{
+                expect(user.tokens[0]).toNotExist();
+                done();
+            }).catch((e)=>{
+                done(e);
+            })
+        })
+    })
+});
 
 
