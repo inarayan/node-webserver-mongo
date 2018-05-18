@@ -256,6 +256,50 @@ describe('POST /users', ()=>{
         .expect(400)
         .end(done);
     })
+});
+
+describe('POST /users/login', ()=>{
+    it('returns the email if the email and password matches',(done)=>{
+        var email = "indra@example.com";
+        var password = "123456!"
+        request(app)
+        .post('/user/login')
+        .send({"email": email, "password": password})
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.email).toBe(email);
+            expect(res.headers['x-auth']).toExist();
+        })
+        .end((err, res)=>{
+            if(err){
+                done(err);
+            }
+
+            User.findOne({"email":email}).then((user)=>{
+            expect(user.tokens[1].token).toExist();
+            expect(user.email).toBe(email);
+            expect(user.tokens[1]).toInclude({
+                access:'auth',
+                token: res.headers['x-auth']
+            });
+            done();
+            }).catch((e)=>{
+                done(e);
+            })
+        });
+
+    })
+
+
+    it('returns 400 if the email and password is invalid', (done)=>{
+        var email = "indra@example.com";
+        var password = "12345!"
+        request(app)
+        .post('/user/login')
+        .send({"email": email, "password": password})
+        .expect(404)
+        .end(done);
+    })
 })
 
 
