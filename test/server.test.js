@@ -324,6 +324,15 @@ describe('DELETE /user/me/token', ()=>{
                 done(e);
             })
         })
+    });
+
+    it('returns 401 when the token when invalid', (done)=>{
+
+        request(app)
+        .delete('/user/me/token')
+        .set('x-auth', Users[0].tokens[0].token+'a')
+        .expect(401)
+        .end(done)
     })
 });
 
