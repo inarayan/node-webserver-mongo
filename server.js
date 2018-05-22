@@ -1,3 +1,5 @@
+
+require('./config/config.js');
 var { ObjectID } = require('mongodb');
 const express = require('express');
 const bodyparser = require('body-parser');
@@ -16,6 +18,7 @@ var app = express();
 
 //Create a port variable for heroku
 const port = process.env.PORT || 3000;
+
 
 
 app.use(bodyparser.json());
