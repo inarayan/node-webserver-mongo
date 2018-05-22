@@ -23,8 +23,12 @@ var Users = [{
     ,{
     "_id":user2ObjId,
     "email":"indra2@example.com",
-    "password":"123456!"
-}];
+    "password":"123456!",
+        "tokens":[{
+        "token": jwt.sign({_id:user2ObjId.toHexString(), access:'auth'},secret).toString(),
+        "access":"auth"
+    }]}
+    ];
 
 //Todos to insert
 var Todos = [{
@@ -32,13 +36,16 @@ var Todos = [{
     "task":"Task 1",
     "assigned_to":"person1",
     "done":false,
-    "dueDate": new Date().getTime()
+    "dueDate": new Date().getTime(),
+    "_creater":Users[0]._id
 },{
     "_id": new ObjectID(),
     "task":"Task 2",
     "assigned_to":"person2",
     "done":"false",
-    "dueDate":null
+    "dueDate":null,
+    "_creater":Users[1]._id
+
 
 }];
 
@@ -67,6 +74,7 @@ describe('POST Test all the Post routes', ()=>{
             .post('/todos')
             .send({"task":"Service your vehicle 2", "assigned_to":"Indra2"})
             .expect(201)
+            .set('x-auth',Users[0].tokens[0].token)
             .expect(function(res){
         }).end((err, res) => { // 4
             if (err) {
@@ -88,6 +96,7 @@ describe('POST Test all the Post routes', ()=>{
         request(app)
         .post('/todos')
         .send({task:'Invalid Task'})
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(400)
         .end((err,res)=>{
             if(err){
@@ -109,6 +118,7 @@ describe('GET /todos/:id', ()=>{
         var id = Todos[0]._id.toHexString();
         request(app)
         .get(`/todos/${id}`)
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.todo.task).toBe('Task 1');
@@ -119,6 +129,7 @@ describe('GET /todos/:id', ()=>{
         var id = new ObjectID().toHexString();
         request(app)
         .get(`/todos/${id}`)
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(404, done)
     })
 });
@@ -129,6 +140,7 @@ describe('DELETE /todos/:id', () => {
 
         request(app)
         .delete(`/todos/${id}`)
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.todo.task).toBe("Task 1");
@@ -156,6 +168,7 @@ describe('DELETE /todos/:id', () => {
         var id = new ObjectID();
         request(app)
         .delete(`/todos/${id}`)
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(404, done)
     });
 
@@ -163,6 +176,7 @@ describe('DELETE /todos/:id', () => {
         var id = "abc";
         request(app)
         .delete(`/todos/${id}`)
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(400, done)
     })
 
@@ -174,6 +188,7 @@ describe('PATCH /todos/:id', ()=>{
         request(app)
         .patch(`/todos/${id}`)
         .send({"task":"This the first new task", "done": true})
+        .set('x-auth',Users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.todo.task).toBe("This the first new task");
@@ -185,6 +200,7 @@ describe('PATCH /todos/:id', ()=>{
         var id = Todos[1]._id.toHexString();
         request(app)
         .patch(`/todos/${id}`)
+        .set('x-auth',Users[1].tokens[0].token)
         .send({"task":"This the second new task", "done": false})
         .expect(200)
         .expect((res)=>{

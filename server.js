@@ -78,25 +78,32 @@ app.delete('/user/me/token',authenticate, (req, res)=>{
     user.removeToken(req.headers['x-auth']).then(()=>{
         res.send();
     }).catch((e)=>{
+
         res.status(400).send(e);
     });
 });
 
-app.post('/todos',(req, res)=>{
-    var TodoCreate = new Todo(req.body);
+
+app.post('/todos', authenticate, (req, res)=>{
+    var TodoCreate = new Todo({
+        task:req.body.task,
+        assigned_to:req.body.assigned_to,
+        done:req.body.done,
+        dueDate:req.body.dueDate,
+        _creater:req.user._id
+    });
 
     TodoCreate.save().then((todo)=>{
         console.log("Todo was added to the list");
         res.status(201).send(todo);
     }).catch((e)=>{
         res.status(400).send(e);
-        //console.log("There was an error while adding a todo task");
     })
 });
 
 //searches for all the todos
-app.get('/todos',(req, res)=>{
-    Todo.find({}).then((todos)=>{
+app.get('/todos',authenticate, (req, res)=>{
+    Todo.find({_creater:req.user._id}).then((todos)=>{
         res.send({todos});
     }).catch((e)=>{
         res.status(404).send(e);
@@ -104,13 +111,13 @@ app.get('/todos',(req, res)=>{
 });
 
 //Search a todo by Id
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     var searchid = req.params.id;
 
     if (!ObjectID.isValid(searchid)){
         return res.status(400).send("Not a valid ID");
     }
-    Todo.findById(searchid).then((todo) => {
+    Todo.findOne({_id:searchid, _creater:req.user._id}).then((todo) => {
         if(todo){
            res.send({todo});
 
@@ -125,7 +132,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 //delete a todo by Id
-app.delete('/todos/:id', (req, res)=>{
+app.delete('/todos/:id', authenticate, (req, res)=>{
     var idToBeDeleted = req.params.id;
 
 
@@ -133,7 +140,7 @@ app.delete('/todos/:id', (req, res)=>{
         return res.status(400).send("Id is not Valid");
     }
 
-    Todo.findOneAndRemove({"_id": idToBeDeleted}).then((todo)=>{
+    Todo.findOneAndRemove({"_id": idToBeDeleted, _creater: req.user._id}).then((todo)=>{
         if (todo){
             res.send({todo});
         }else{
@@ -145,9 +152,10 @@ app.delete('/todos/:id', (req, res)=>{
 })
 
 //patch a todo (update a text and assigned To  and done)
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
 
     var id = req.params.id;
+
     var body = _.pick(req.body,['task','done']);
 
     if (_.isBoolean(body.done) && body.done === true){
@@ -158,7 +166,7 @@ app.patch('/todos/:id', (req, res) => {
 
     }
 
-    Todo.findByIdAndUpdate(id, {
+    Todo.findOneAndUpdate({_id:id, _creater:req.user._id}, {
         $set:body
     },{
         new: true
