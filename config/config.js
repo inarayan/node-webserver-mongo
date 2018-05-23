@@ -1,7 +1,9 @@
 var env = process.env.NODE_ENV || "development";
 console.log("env **** " + env);
 
-if (env === 'development'){
+var envConfig = require("./config.json");
+
+/*if (env === 'development'){
     process.env.port=3000;
     process.env.MONGODB_URI = "mongodb://localhost:27017/TodoApp";
 }
@@ -16,9 +18,15 @@ else if(env === "production")
 }
 
 console.log(process.env.MONGODB_URI);
+*/
 
-module.exports = {
-    'secret':'superSecret'
+envProperty = envConfig[env];
 
 
-}
+Object.keys(envProperty).forEach((key)=>{
+
+    process.env[key] = envProperty[key];
+
+
+
+})

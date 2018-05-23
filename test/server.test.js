@@ -6,12 +6,11 @@ const {app} = require('./../server');
 
 const{Todo} = require('./../model/TodoSchema');
 const{ User } = require('./../model/UserSchema');
-var { secret } = require('./../config/config.js');
+require('./../config/config.js');
 var {ObjectID} = require('mongodb');
 
 var user1ObjId = new ObjectID();
 var user2ObjId = new ObjectID();
-
 
 
 var Users = [{
@@ -19,7 +18,7 @@ var Users = [{
     "email":"indra@example.com",
     "password":"123456!",
     "tokens":[{
-        "token": jwt.sign({_id:user1ObjId.toHexString(), access:'auth'},secret).toString(),
+        "token": jwt.sign({_id:user1ObjId.toHexString(), access:'auth'},process.env.JWT_SECRET).toString(),
         "access":"auth"
     }]}
     ,{
@@ -27,7 +26,7 @@ var Users = [{
     "email":"indra2@example.com",
     "password":"123456!",
         "tokens":[{
-        "token": jwt.sign({_id:user2ObjId.toHexString(), access:'auth'},secret).toString(),
+        "token": jwt.sign({_id:user2ObjId.toHexString(), access:'auth'},process.env.JWT_SECRET).toString(),
         "access":"auth"
     }]}
     ];

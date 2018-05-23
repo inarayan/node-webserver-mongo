@@ -7,7 +7,6 @@ const {mongoose} = require('./db/db');
 const { User } = require('./model/UserSchema');
 const { Todo } = require('./model/TodoSchema');
 const {_} = require('lodash');
-var {secret} = require('./config/config');
 var bcrypt = require('bcryptjs');
 
 var jwt = require('jsonwebtoken');

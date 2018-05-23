@@ -1,6 +1,6 @@
+require('./../config/config.js');
 var mongoose = require('mongoose');
 var validator = require('validator');
-var {secret} = require('./../config/config');
 var jwt = require('jsonwebtoken');
 var bcrypt = require ('bcryptjs');
 
@@ -45,7 +45,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.generateAuthToken = function(){
     var user = this;
     var access='auth';
-    var token = jwt.sign({_id:user._id.toHexString(), access},secret).toString();
+    var token = jwt.sign({_id:user._id.toHexString(), access},process.env.JWT_SECRET).toString();
 
     user.tokens.push({access, token});
 
@@ -73,7 +73,7 @@ UserSchema.statics.findByToken = function(token){
     var access = 'auth';
 
 
-        return jwt.verify(token, secret, function(err, decoded){
+        return jwt.verify(token, process.env.JWT_SECRET, function(err, decoded){
 
             if (!err){
 
